@@ -1,0 +1,39 @@
+import boto3
+
+#initiative session using aws EC2
+session = boto3.Session(
+    aws_access_key_id= 'AKIAWN26JXJ2Z6PNZAQF',
+    aws_secret_access_key= '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',
+    region_name= 'ap-south-1'
+    
+)  
+
+#Inittivate EC2 instance
+ec2 = session.resource('ec2')
+
+#Inittivate EC2 client
+ec2_client = session.client('ec2')
+
+#Descibe all instances
+instances = ec2.instances.all()
+
+#Iterate over all instances
+for instance in instances:
+    #Get all volumes attached to the instances
+    volumes = instance.volumes.all()
+    
+    
+    #check each volume
+    for volume in volumes:
+        #Print volume type
+        print(f"Instance ID: {instance.id}, Volume ID: {volume.id}, Volumes Type: {volume.volume_type}")
+        
+        #Check if the volume type is older than gp3
+        if volume.volume_type in ['gp2','standard','io1','io2']:
+            print(f"Terminating instance {instance.id} because it has an older version of volume type: {volume.volume_type}")
+            
+            
+            #Terminate the instance
+            ec2_client.terminate_instances(InstanceIds=[instance.id])
+            print(f"  Instance {instance.id} terminated.")
+            break #Exit the loop after terminating the instance     
